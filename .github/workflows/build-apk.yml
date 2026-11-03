@@ -1,0 +1,79 @@
+name: Build Cash Panet APK
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android SDK licenses
+        run: |
+          mkdir -p "${ANDROID_HOME}/licenses"
+          printf "\n24333f8a63b6825ea9c5514f83c2829b004d1fee\nd56f5187479451eabf01fb78af6dfcb131a6481e\n84831b9409646a918e30573bab4c9c91346d8abd\n" > "${ANDROID_HOME}/licenses/android-sdk-license"
+          printf "\n84831b9409646a918e30573bab4c9c91346d8abd\n504667f4c0de7af1a06de9f4b1727b84351f2910\n" > "${ANDROID_HOME}/licenses/android-sdk-preview-license"
+          if [ -x "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" ]; then
+            yes | "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          fi
+
+      - name: Set up Gradle 9.3.1
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.3.1"
+
+      - name: Prepare signing keystore
+        run: |
+          if [ -f debug.keystore.base64 ]; then
+            tr -d '\n\r ' < debug.keystore.base64 | base64 -d > debug.keystore
+          else
+            keytool -genkeypair -v \
+              -keystore debug.keystore \
+              -storepass android \
+              -alias androiddebugkey \
+              -keypass android \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+
+      - name: Build installable APK
+        run: |
+          gradle :app:assembleDebug --no-daemon
+          cp app/build/outputs/apk/debug/app-debug.apk Cash-Panet.apk
+
+      - name: Upload Cash-Panet.apk artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Cash-Panet-APK
+          path: Cash-Panet.apk
+          if-no-files-found: error
+
+      - name: Publish v1.0 Cash-Panet.apk to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0
+          target_commitish: ${{ github.sha }}
+          name: Cash Panet v1.0
+          body: |
+            Direct Android `.apk` installer for **Cash Panet** (`https://cashpanet.app/`).
+            Tap **Cash-Panet.apk** below to download and install on Android.
+          files: Cash-Panet.apk
+          make_latest: true
