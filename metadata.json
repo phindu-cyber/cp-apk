@@ -1,0 +1,6 @@
+{
+  "name": "Cash Panet",
+  "description": "Mobile app for Cash Panet (cashpanet.app), Malawi's verified digital task and engagement marketplace.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Cash Panet</string>
+    <string name="cd_splash_logo">Cash Panet logo</string>
+
+    <!-- Connection Error Recovery -->
+    <string name="error_title_offline">You are currently offline</string>
+    <string name="error_title_connection">Unable to reach Cash Panet</string>
+    <string name="error_body_offline">Check your mobile data or Wi-Fi connection and try again.</string>
+    <string name="error_body_connection">Could not load cashpanet.app (%1$s). Check your connection and try again.</string>
+    <string name="action_retry_connection">Try Again</string>
+</resources>
